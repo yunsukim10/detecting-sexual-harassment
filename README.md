@@ -44,16 +44,15 @@ Total: 18,212
 	Hidden dim = 256
 	N_layers = 1
 	Lr = 0.001
-
-##### Train: 80%, Validation: 10%, Test: 10%
+	Train: 80%, Validation: 10%, Test: 10%
 
 #### 1) LSTM
 
-		1. Embedding layer
-		2. LSTM layer
-		3. Fully connected layer
-		4. Sigmoid activation layer
-		5. Output
+	1. Embedding layer
+	2. LSTM layer
+	3. Fully connected layer
+	4. Sigmoid activation layer
+	5. Output
 
 	Validation Accuracy: 98.0%
 	Test Accuracy: 98.4%
