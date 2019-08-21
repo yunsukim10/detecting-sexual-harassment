@@ -26,79 +26,54 @@ Total: 18,212
 ### Logistic Regression
 #### 1) Bag of Words
 
-Used scikit-learn CountVectorizer to train, spaCy to preprocess data
-
-Accuracy: 98.9% on test data
+	Used scikit-learn CountVectorizer to train, spaCy to preprocess data
+	Accuracy: 98.9% on test data
 
 #### 2) TF-IDF
 
-Used scikit-learn TfidfVectorizer to train, spaCy to preprocess data
-
-Accuracy: 98.6% on test data
+	Used scikit-learn TfidfVectorizer to train, spaCy to preprocess data
+	Accuracy: 98.6% on test data
 
 ### Recurrent Neural Network
+	Used PyTorch to train LSTM and GRU models.
+	Parsed 24,824 sentences.
+	Found 44293 unique words tokens.
+	Using vocabulary size 8000 + 1 (1 for padding)
+	Batch size = 20
+	Embedding dim = 400
+	Hidden dim = 256
+	N_layers = 1
+	Lr = 0.001
 
-Used PyTorch to train LSTM and GRU models.
-
-Parsed 24,824 sentences.
-
-Found 44293 unique words tokens.
-
-Using vocabulary size 8000 + 1 (1 for padding)
-
-Batch size = 20
-
-Embedding dim = 400
-
-Hidden dim = 256
-
-N_layers = 1
-
-Lr = 0.001
-
-Train: 80%, Validation: 10%, Test: 10%
+##### Train: 80%, Validation: 10%, Test: 10%
 
 #### 1) LSTM
 
-Embedding layer
+		1. Embedding layer
+		2. LSTM layer
+		3. Fully connected layer
+		4. Sigmoid activation layer
+		5. Output
 
-LSTM layer
-
-Fully connected layer
-
-Sigmoid activation layer
-
-Output
-
-Validation Accuracy: 98.0%
-
-Test Accuracy: 98.4%
+	Validation Accuracy: 98.0%
+	Test Accuracy: 98.4%
 
 #### 2) GRU
 
-Embedding layer
+	1. Embedding layer
+	2. Bidirectional GRU layer
+	3. Fully connected layer
+	4. Sigmoid activation layer
+	5. Output
 
-Bidirectional GRU layer
-
-Fully connected layer
-
-Sigmoid activation layer
-
-Output
-
-Validation Accuracy: 0.836
-
-Test accuracy: 0.824
+	Validation Accuracy: 0.836
+	Test accuracy: 0.824
 
 ### Fasttext
 
-Used --pretrainedVectors wiki.en.vec
-
-epoch = 4
-
-lr = 0.4
-
-dim = 300
-
-Accuracy: 98.3%
+	Used --pretrainedVectors wiki.en.vec
+	epoch = 4
+	lr = 0.4
+	dim = 300
+	Accuracy: 98.3%
 
