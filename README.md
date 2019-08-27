@@ -100,4 +100,4 @@ ex) `python3 fasttext_model.py train -visualize True`
 
 To test on email data, run `python3 fasttext_enron.py <model>`
 
-<model> is the path to the saved model file (.bin file) that you are loading
+`<model>` is the path to the saved model file (.bin file) that you are loading
