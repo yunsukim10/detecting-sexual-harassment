@@ -18,13 +18,13 @@ import sys
 import spacy
 import pickle
 
-def main():
+def main(model):
     list_corpus = []
     list_labels = []
     
+    print("Preprocessing Data . . .")
     with open('../Data/TestTrainData/nh_h_all.csv','r') as file:
         data = csv.reader(file)
-    
         for row in data:
             list_corpus.append(row[0])
             list_labels.append(row[1])
@@ -40,31 +40,43 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(list_corpus, list_labels, test_size=0.2, 
                                                                                random_state=40)
 
-#####bag of words        
-    count_vectorizer = CountVectorizer(tokenizer=token, ngram_range=(1,2))
-    X_train_counts = count_vectorizer.fit_transform(X_train)
-    X_test_counts = count_vectorizer.transform(X_test)
-    
-    clf = LogisticRegression(C=30.0, class_weight='balanced', solver='newton-cg', 
-                         multi_class='multinomial', n_jobs=-1, random_state=40)
-    clf.fit(X_train_counts, y_train)
+    print("Training . . .")
+    if model == 'bow':
+        vectorizer = CountVectorizer(tokenizer=token, ngram_range=(1,2))
+        filename = 'model_saved/BOW_MODEL.sav'
+        featurename = 'model_saved/BOW.pkl'
 
+    elif model == 'tfidf':
+        vectorizer = TfidfVectorizer(tokenizer=token, ngram_range=(1,2), stop_words='english')
+        filename = 'model_saved/TFIDF_MODEL.sav'
+        featurename = 'model_saved/TFIDF.pkl'
+
+    else:
+        print("Wrong model type")
+        quit()
+
+    X_train_counts = vectorizer.fit_transform(X_train)
+    X_test_counts = vectorizer.transform(X_test)
+        
+    clf = LogisticRegression(C=30.0, class_weight='balanced', solver='newton-cg', 
+                             multi_class='multinomial', n_jobs=-1, random_state=40)
+    clf.fit(X_train_counts, y_train)
     y_predicted_counts = clf.predict(X_test_counts)
+        
     accuracy, precision, recall, f1 = get_metrics(y_test, y_predicted_counts)
     print("accuracy = %.3f, precision = %.3f, recall = %.3f, f1 = %.3f" % (accuracy, precision, recall, f1))
+    print("Printing examples predicted incorrectly . . .")
 
     for idx_pred, prediction in enumerate(y_predicted_counts):
         if prediction != y_test[idx_pred]:
             print("Pred: {} Actual: {} \n{}".format(prediction, y_test[idx_pred], X_test[idx_pred]))
-    
-    
-    importance = get_most_important_features(count_vectorizer, clf, 10)
-    
+        
+    importance = get_most_important_features(vectorizer, clf, 10)
     top_scores = [a[0] for a in importance[0]['tops']]
     top_words = [a[1] for a in importance[0]['tops']]
     bottom_scores = [a[0] for a in importance[0]['bottom']]
     bottom_words = [a[1] for a in importance[0]['bottom']]
-    
+        
     plot_important_words(top_scores, top_words, bottom_scores, bottom_words, "Most important words for relevance")
 
     cm = confusion_matrix(y_test, y_predicted_counts)
@@ -72,82 +84,40 @@ def main():
     plot_confusion_matrix(cm, classes=['Not Harassment','Harassment'], normalize=False, title='Confusion matrix')
     plt.show()
     print(cm)
-    
 
-#####tfidf
-    tfidf_vectorizer = TfidfVectorizer(tokenizer=token, ngram_range=(1,2), stop_words='english')
-    X_train_tfidf = tfidf_vectorizer.fit_transform(X_train)
-    X_test_tfidf = tfidf_vectorizer.transform(X_test)
-    
-    clf_tfidf = LogisticRegression(C=30.0, class_weight='balanced', solver='newton-cg', 
-                         multi_class='multinomial', n_jobs=-1, random_state=40)
-    clf_tfidf.fit(X_train_tfidf, y_train)
-            
-    y_predicted_tfidf = clf_tfidf.predict(X_test_tfidf)
-    
-    # Check the error
-    for idx_pred, prediction in enumerate(y_predicted_tfidf):
-        if prediction != y_test[idx_pred]:
-            print("Pred: {} Actual: {} \n{}".format(prediction, y_test[idx_pred], X_test[idx_pred]))
-    
-    accuracy_tfidf, precision_tfidf, recall_tfidf, f1_tfidf = get_metrics(y_test, y_predicted_tfidf)
-    print("accuracy = %.3f, precision = %.3f, recall = %.3f, f1 = %.3f" % (accuracy_tfidf, precision_tfidf, 
-                                                                       recall_tfidf, f1_tfidf))
-    cm2 = confusion_matrix(y_test, y_predicted_tfidf)
-    plt.figure(figsize=(10, 10))
-    plot_confusion_matrix(cm2, classes=['Not Harassment','Harassment'], normalize=False, title='Confusion matrix')
-    plt.show()
-    print("TFIDF confusion matrix")
-    print(cm2)
-
-    
-    importance_tfidf = get_most_important_features(tfidf_vectorizer, clf_tfidf, 10)
-    top_scores = [a[0] for a in importance_tfidf[0]['tops']]
-    top_words = [a[1] for a in importance_tfidf[0]['tops']]
-    bottom_scores = [a[0] for a in importance_tfidf[0]['bottom']]
-    bottom_words = [a[1] for a in importance_tfidf[0]['bottom']]
-
-    plot_important_words(top_scores, top_words, bottom_scores, bottom_words, "Most important words for relevance")
-
-    filename = 'TFIDF_MODEL.sav'
+    print("Saving the model . . .")
     with open(filename, 'wb') as fout:
-        pickle.dump(clf_tfidf, fout)
-    
-    pickle.dump(tfidf_vectorizer.vocabulary_,open('Feature.pkl','wb'))
-    
-####predict email data
+        pickle.dump(clf, fout)
+    pickle.dump(vectorizer.vocabulary_,open(featurename,'wb'))
+
+    print("Pridicting on email data . . .")
+    predict_email(model, vectorizer, clf) #comment this out if you don't want to test on email data
+    print("Done!")
+
+def predict_email(model, vectorizer, clf):
+    ####predict email data
+
     PATH = '../Data/parsed_email.csv'
     email_text, email_index = get_email_data(PATH)
     
-    
-    new_test_count = count_vectorizer.transform(email_text)
-    new_predicted_counts = clf.predict(new_test_count)
-    prob = clf.predict_proba(new_test_count)
-    
-    with open('../Results/clf_result.csv','w') as file:
+    if model == 'bow':
+        OUTPUT = '../Results/clf_result.csv'
+    elif model == 'tfidf':
+        OUTPUT = '../Results/tfidf_result.csv'
+
+    new_test = vectorizer.transform(email_text)
+    new_predicted = clf.predict(new_test)
+    prob = clf.predict_proba(new_test)
+        
+    with open(OUTPUT,'w') as file:
         fieldnames = ['data','prob','index']
         writer = csv.DictWriter(file,fieldnames=fieldnames)
         writer.writeheader()
-        for idx_pred, prediction in enumerate(new_predicted_counts):
+        for idx_pred, prediction in enumerate(new_predicted):
             if prob[idx_pred][1] > 0.7:
                 writer.writerow({'data': email_text[idx_pred], 'prob':prob[idx_pred][1], 'index': email_index[idx_pred]})
-                
-    new_test_tfidf = tfidf_vectorizer.transform(email_text)
-    new_test_predicted = clf_tfidf.predict(new_test_tfidf)
-    prob = clf_tfidf.predict_proba(new_test_tfidf)
     
-    count = 0
-    
-    with open('../Results/tfidf_result.csv','w') as file:
-        fieldnames = ['data','prob','index']
-        writer = csv.DictWriter(file,fieldnames=fieldnames)
-        writer.writeheader()
-        for idx_pred, prediction in enumerate(new_test_predicted):
-            if prob[idx_pred][1] > 0.7:
-                writer.writerow({'data': email_text[idx_pred], 'prob':prob[idx_pred][1], 'index': email_index[idx_pred]})
-                count += 1
-    print(count)
-    
+
 def get_email_data(PATH):
     csv.field_size_limit(sys.maxsize)
 
@@ -254,4 +224,8 @@ def get_metrics(y_test, y_predicted):
     # true positives + true negatives/ total
     accuracy = accuracy_score(y_test, y_predicted)
     return accuracy, precision, recall, f1
+
+if __name__ == '__main__':
+    model = sys.argv[1]
+    main(model)
 

@@ -63,6 +63,8 @@ def get_h_data():
         text = json.load(file)
         for id in text:
             new_text = text[id]['text']
+            #in safecity data, there are a lot of "- happened at am / pm " describing the time of the day
+            #I removed these using the time tag that was provided in the safecity data to decrease noise in my data
             try: 
                 for time in text[id]['records']['Time']: 
                     if any(char.isdigit() for char in time['span']):

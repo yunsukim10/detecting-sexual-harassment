@@ -1,0 +1,15 @@
+meta_subject|Subject: RE:
+meta_from|From: Villarreal  Alexandra <alexandra.villarreal@enron.com>
+meta_date|Date: Thu, 18 Oct 2001 12:33:59 -0700
+meta_to|To: Griffith  John <john.griffith@enron.com>
+end-of-meta|
+end-of-meta|
+body_content|sorry, not feeling too sexy right now
+body_content|
+boilerplate_separator| -----Original Message-----
+meta_from|From: 	Griffith, John  
+meta_date|Sent:	Thursday, October 18, 2001 12:31 PM
+meta_to|To:	Villarreal, Alexandra
+meta_subject|Subject:	
+end-of-meta|
+body_content|What is going on?  Send me an exciting sexy email to wake me up.

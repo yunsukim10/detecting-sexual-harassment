@@ -6,6 +6,7 @@ fastText train, test, and plot word vectors
 @author: yunsukim
 """
 import csv
+import optparse
 import fasttext
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
@@ -88,25 +89,45 @@ def print_results(N, p, r):
     print("P@{}\t{:.3f}".format(1, p))
     print("R@{}\t{:.3f}".format(1, r))
 
+def main(train_or_load, visualize):
 
-#train
-model = fasttext.train_supervised('../Data/TestTrainData/train_w_labels.txt',epoch=4,lr=0.4)
+    if train_or_load == 'train':
+        #train
+        model = fasttext.train_supervised('../Data/TestTrainData/train_w_labels.txt',epoch=4,lr=0.4)
 
-#or load model trained on a compiler (this one is trained with option -pretrainedVectors wiki.en.vec)
-model2 = fasttext.load_model('model_fasttext.bin')
+    elif train_or_load == 'load':
+        #or load model trained on a compiler (this one is trained with option -pretrainedVectors wiki.en.vec)
+        model = fasttext.load_model('model_fasttext.bin')
+    
+    else:
+        print("Wrong arguments")
+        quit()
 
-#test
-print_results(*model.test('../Data/TestTrainData/test_w_labels.txt'))
+    #test
+    print_results(*model.test('../Data/TestTrainData/test_w_labels.txt'))
 
-#visualize word vectors
-words = model.words
-vectors = []
+    if visualize=='True':
+        #visualize word vectors
+        words = model.words
+        vectors = []
 
-for word in words:
-    vector = model.get_word_vector(word)
-    vectors.append(vector)
+        for word in words:
+            vector = model.get_word_vector(word)
+            vectors.append(vector)
 
-vectors = np.array(vectors)
+        vectors = np.array(vectors)
+        visualize_feature(vectors, words,'',2)
 
-visualize_feature(vectors, words,'',2)
+def parse_argument():
+    op = optparse.OptionParser()
+    op.add_option("-v", "--visualize", help='visualize word vectors', default='False', dest='visualize')
+    return op.parse_args()
+
+
+if __name__ == '__main__':
+    option, args = parse_argument()
+    train_or_load = args[0]
+    visualize = option.visualize
+    main(train_or_load,visualize)
+
 

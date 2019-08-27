@@ -1,0 +1,7 @@
+meta_subject|Subject: 
+meta_from|From: mandy.bowles@email.moore.com
+meta_date|Date: Mon, 06 Nov 2000 16:49:00 -0800
+meta_to|To: Gerald Nemec <gerald.nemec@enron.com>
+end-of-meta|
+end-of-meta|
+body_content|I am a sex machine.

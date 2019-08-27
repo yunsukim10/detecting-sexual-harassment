@@ -39,7 +39,7 @@ def pad_features(example_int, seq_length):
     return features
 
 class RNN(nn.Module):
-    def __init__(self, vocab_size, output_size, embedding_dim, hidden_dim, n_layers, drop_prob=0.5, model="gru"):
+    def __init__(self, vocab_size, output_size, embedding_dim, hidden_dim, n_layers, model, drop_prob=0.5):
         """
         Initialize the model by setting up the layers.
         """
@@ -58,11 +58,11 @@ class RNN(nn.Module):
         elif self.model == 'gru':
             self.gru = nn.GRU(embedding_dim, hidden_dim, n_layers, batch_first=True, bidirectional=True)
         # dropout layer
-        self.dropout = nn.Dropout(0.3)
+        self.dropout = nn.Dropout(drop_prob)
         
-        # linear and sigmoid layers
+        # linear and softmax layers
         self.fc = nn.Linear(hidden_dim, output_size)
-        self.sig = nn.Sigmoid()
+        self.softmax = nn.Softmax()
 
     def forward(self, x, hidden):
         
@@ -79,14 +79,14 @@ class RNN(nn.Module):
         # dropout and fully-connected layer
         out = self.dropout(model_out)
         out = self.fc(out)
-        # sigmoid function
-        sig_out = self.sig(out)
+
+        sm_out = self.softmax(out)
         
         # reshape to be batch_size first
-        sig_out = sig_out.view(batch_size, -1)
-        sig_out = sig_out[:,-1] # get last batch of labels
+        sm_out = sm_out.view(batch_size, -1)
+        sm_out = sm_out[:,-1] # get last batch of labels
         
-        return sig_out, hidden
+        return sm_out, hidden
 
 
     def init_hidden(self, batch_size):
@@ -103,151 +103,150 @@ class RNN(nn.Module):
         return hidden
 
 
-    def main():
-        # Instantiate the model w/ hyperparams
-        vocab_size = 8001  # +1 for the 0 padding
-        output_size = 1
-        embedding_dim = 400
-        hidden_dim = 256
-        n_layers = 1
-        model = 'gru'
-        net = RNN(vocab_size, output_size, embedding_dim, hidden_dim, n_layers, model=model)
-        batch_size = 20
-                
-        # loss and optimization functions
-        lr=0.001
-        
-        criterion = nn.BCELoss()
-        optimizer = torch.optim.Adam(net.parameters(), lr=lr)
-        
-        # training params
-        epochs = 10 
-        counter = 0
-        print_every = 100
-        num_correct = 0
-        clip=5 # gradient clipping
-        losses = []
-        val_losses = []
-        accuracy = []
-        acc_mean = []
-        loss_mean = []
-        net.train()
-
-        # train for some number of epochs
-        for e in range(epochs):
-            # initialize hidden state
-            h = net.init_hidden(batch_size)
-        
-            # batch loop
-            for inputs, labels in train_loader:
-                
-                counter += 1
-                # Creating new variables for the hidden state, otherwise
-                # we'd backprop through the entire training history
-                if model == 'gru':
-                    h = h.data
-                elif model == 'lstm':
-                    h = tuple([each.data for each in h])
-                
-                # zero accumulated gradients
-                net.zero_grad()
-        
-                # get the output from the model
-                inputs = inputs.type(torch.LongTensor)
-                output, h = net(inputs, h)
-        
-                # calculate the loss and perform backprop
-                loss = criterion(output.squeeze(), labels.float())
-                losses.append(loss.item())
-                loss.backward()
-                
-                pred = torch.round(output.squeeze())
-                correct_tensor = pred.eq(labels.float().view_as(pred))
-                correct = np.squeeze(np.squeeze(correct_tensor.cpu().numpy()))
-                num_correct = np.sum(correct)
-                train_acc = num_correct / batch_size
-                                
-                # `clip_grad_norm` helps prevent the exploding gradient problem in RNNs / LSTMs.
-                nn.utils.clip_grad_norm_(net.parameters(), clip)
-                optimizer.step()
-        
-                # loss stats
-                # Get validation loss
-                if counter % print_every == 0:
-                    val_h = net.init_hidden(batch_size)
-                    
-                    net.eval()
-                    for inputs, labels in valid_loader:
-                        # Creating new variables for the hidden state, otherwise
-                        # we'd backprop through the entire training history
-                        if model == 'gru':
-                            val_h = val_h.data
-                        elif model == 'lstm':
-                            val_h = tuple([each.data for each in val_h])
-        
-                        inputs = inputs.type(torch.LongTensor)
-                        output, val_h = net(inputs, val_h)
-                        val_loss = criterion(output.squeeze(), labels.float())
-                        
-                        pred = torch.round(output.squeeze())
-                        correct_tensor = pred.eq(labels.float().view_as(pred))
-                        correct = np.squeeze(np.squeeze(correct_tensor.cpu().numpy()))
-                        num_correct = np.sum(correct)
-                        acc = num_correct / batch_size
-                        accuracy.append(acc)
-        
-                        val_losses.append(val_loss.item())
-        
-                    net.train()
-                    print("Epoch: {}/{}...".format(e+1, epochs),
-                          "Step: {}...".format(counter),
-                          "Loss: {:.6f}...".format(loss.item()),
-                          "Train Acc: {:.6f}".format(train_acc),
-                          "Val Loss: {:.6f}".format(np.mean(val_losses)),
-                          "Val Accuracy: {:.6f}".format(np.mean(accuracy)))
-                    acc_mean.append(np.mean(accuracy))
-                    loss_mean.append(np.mean(val_losses))
-                    
-            torch.save(net, model + str(e+1) +'.pt')
-            #save every epoch
+def train(model):
+    # Instantiate the model w/ hyperparams
+    vocab_size = 8001  # +1 for the 0 padding
+    output_size = 2
+    embedding_dim = 400
+    hidden_dim = 256
+    n_layers = 1
+    net = RNN(vocab_size, output_size, embedding_dim, hidden_dim, n_layers, model=model)
+    batch_size = 20
+    epochs = 10
             
-        data_points = {'val_losses': loss_mean}
-        start_epoch = 1
-        end_epoch = epochs
-        labels = ['val_losses']
-        assert len(data_points) == len(labels), "The number of labels didn't consist with data points indexing."
+    # loss and optimization functions
+    lr=0.001
+
+    criterion = nn.BCELoss()
+    optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+
+    # training params
+    counter = 0
+    print_every = 100
+    num_correct = 0
+    clip=5 # gradient clipping
+    losses = []
+    val_losses = []
+    accuracy = []
+    acc_mean = []
+    loss_mean = []
+    net.train()
+
+    # train for some number of epochs
+    for e in range(epochs):
+        # initialize hidden state
+        h = net.init_hidden(batch_size)
+
+        # batch loop
+        for inputs, labels in train_loader:
+            
+            counter += 1
+            # Creating new variables for the hidden state, otherwise
+            # we'd backprop through the entire training history
+            if model == 'gru':
+                h = h.data
+            elif model == 'lstm':
+                h = tuple([each.data for each in h])
+            
+            # zero accumulated gradients
+            net.zero_grad()
+
+            # get the output from the model
+            inputs = inputs.type(torch.LongTensor)
+            output, h = net(inputs, h)
+
+            # calculate the loss and perform backprop
+            loss = criterion(output.squeeze(), labels.float())
+            losses.append(loss.item())
+            loss.backward()
+            
+            pred = torch.round(output.squeeze())
+            correct_tensor = pred.eq(labels.float().view_as(pred))
+            correct = np.squeeze(np.squeeze(correct_tensor.cpu().numpy()))
+            num_correct = np.sum(correct)
+            train_acc = num_correct / batch_size
+                            
+            # `clip_grad_norm` helps prevent the exploding gradient problem in RNNs / LSTMs.
+            nn.utils.clip_grad_norm_(net.parameters(), clip)
+            optimizer.step()
+
+            # loss stats
+            # Get validation loss
+            if counter % print_every == 0:
+                val_h = net.init_hidden(batch_size)
+                
+                net.eval()
+                for inputs, labels in valid_loader:
+                    # Creating new variables for the hidden state, otherwise
+                    # we'd backprop through the entire training history
+                    if model == 'gru':
+                        val_h = val_h.data
+                    elif model == 'lstm':
+                        val_h = tuple([each.data for each in val_h])
+
+                    inputs = inputs.type(torch.LongTensor)
+                    output, val_h = net(inputs, val_h)
+                    val_loss = criterion(output.squeeze(), labels.float())
+                    
+                    pred = torch.round(output.squeeze())
+                    correct_tensor = pred.eq(labels.float().view_as(pred))
+                    correct = np.squeeze(np.squeeze(correct_tensor.cpu().numpy()))
+                    num_correct = np.sum(correct)
+                    acc = num_correct / batch_size
+                    accuracy.append(acc)
+
+                    val_losses.append(val_loss.item())
+
+                net.train()
+                print("Epoch: {}/{}...".format(e+1, epochs),
+                      "Step: {}...".format(counter),
+                      "Loss: {:.6f}...".format(loss.item()),
+                      "Train Acc: {:.6f}".format(train_acc),
+                      "Val Loss: {:.6f}".format(np.mean(val_losses)),
+                      "Val Accuracy: {:.6f}".format(np.mean(accuracy)))
+                acc_mean.append(np.mean(accuracy))
+                loss_mean.append(np.mean(val_losses))
+                
+        torch.save(net, 'TrainedModels/' + model + str(e+1) +'.pt')
+        #save every epoch
         
-        for label in labels:
-            plt.plot(range(start_epoch, start_epoch + len(data_points[label])),
-                    data_points[label],label=label)
-        
-        data_points = {'accuracy': acc_mean}
-        labels = ['accuracy']
-        assert len(data_points) == len(labels), "The number of labels didn't consist with data points indexing."
-        
-        for label in labels:
-            plt.plot(range(start_epoch, start_epoch + len(data_points[label])),
-                    data_points[label],
-                    label=label)
-        
-        plt.title("Validation set learning curve vs. Number of Training Epochs")
-        plt.xlabel("Training Epochs")
-        plt.ylabel("Learning curve")
-        plt.ylim((0, 1.))
-        plt.xticks(np.arange(0, end_epoch))
-        plt.legend()
-        plt.savefig(os.path.join('', "gru_10.png"), dpi=300)
-        plt.close()
+    data_points = {'val_losses': loss_mean}
+    start_epoch = 1
+    end_epoch = epochs
+    labels = ['val_losses']
+    assert len(data_points) == len(labels), "The number of labels didn't consist with data points indexing."
+
+    for label in labels:
+        plt.plot(range(start_epoch, start_epoch + len(data_points[label])),
+                data_points[label],label=label)
+
+    data_points = {'accuracy': acc_mean}
+    labels = ['accuracy']
+    assert len(data_points) == len(labels), "The number of labels didn't consist with data points indexing."
+
+    for label in labels:
+        plt.plot(range(start_epoch, start_epoch + len(data_points[label])),
+                data_points[label],
+                label=label)
+
+    plt.title("Validation set learning curve vs. Number of Training Epochs")
+    plt.xlabel("Training Epochs")
+    plt.ylabel("Learning curve")
+    plt.ylim((0, 1.))
+    plt.xticks(np.arange(0, end_epoch))
+    plt.legend()
+    plt.savefig(os.path.join('', model + ".png"), dpi=300)
+    plt.close()
         
                 
-def test():
+def test(model, load_model):
     # Get test data loss and accuracy
     test_losses = [] # track loss
     num_correct = 0
     batch_size = 20
-    model = 'gru'
+    model = model
     #choose the model to load and test
-    net = torch.load('TrainedModels/gru9.pt')
+    net = torch.load(load_model)
   
     h = net.init_hidden(batch_size)
     net.eval()
@@ -269,6 +268,8 @@ def test():
         # calculate loss
         test_loss = criterion(output.squeeze(), label.float())
         test_losses.append(test_loss.item())
+
+        print("Printing examples predicted incorrectly . . .")
         
         # convert output probabilities to predicted class (0 or 1)
         pred = torch.round(output.squeeze())  # rounds to the nearest integer
@@ -308,6 +309,7 @@ def test():
     enron_index = []
     PATH = '../Data/parsed_email.csv'
 
+    print("Testing with emails . . .")
     with open(PATH,'r') as file:
         enron = csv.reader(file)
         next(enron) #skip header
@@ -315,6 +317,7 @@ def test():
             enron_text.append(row[0])
             enron_index.append(row[1])
     
+
     tokenized_sentences = [nltk.word_tokenize(sent) for sent in enron_text]
     for i, sent in enumerate(tokenized_sentences):
         tokenized_sentences[i] = [w if w in word_to_index else unknown_token for w in sent]
@@ -323,16 +326,9 @@ def test():
     for sent in tokenized_sentences:    
         index = [word_to_index[word] for word in sent]
         enron_ints.append(index)
-
-    
-    enron_len = [len(x) for x in enron_ints]
-    pd.Series(enron_len).hist(range=[0,600])
-    pd.Series(enron_len).describe()
-    plt.show()
     
     seq_length = 50
     features = pad_features(enron_ints, seq_length)
-    print(features[0])
    
     enron_data = TensorDataset(torch.from_numpy(features))
     enron_loader = DataLoader(enron_data, batch_size=1)
@@ -342,12 +338,14 @@ def test():
     h = net.init_hidden(batch_size)
     net.eval()
 
-    #write to either LSTM_result.csv or GRU_result.csv
-    OUTPUT_PATH = '../Results/GRU_result.csv'
+    if model == 'gru':
+        OUTPUT_PATH = '../Results/GRU_result.csv'
+    else:
+        OUTPUT_PATH = '../Results/LSTM_result.csv'
 
     with open(OUTPUT_PATH,'w') as file:
         fieldnames = ['data','prob','index']
-        writer = csv.DictWriter(file,fieldnames=fieldnames)
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         
         for i, inputs in enumerate(enron_loader):
@@ -425,10 +423,6 @@ for example in tokenized_sentences:
     index = [word_to_index[w] for w in example]
     example_int.append(index)
 
-example_len = [len(x) for x in example_int]
-pd.Series(example_len).hist()
-pd.Series(example_len).describe()
-plt.show()
 labels = np.array(labels)
 
 #pad with zeros; all input will be word length = seq_length
@@ -469,6 +463,16 @@ print()
 print('Sample label size: ', sample_y.size()) # batch_size
 print('Sample label: \n', sample_y)
 
-#RNN.main() #call to train
-test() #call to test
+
+if __name__ == '__main__':
+    train_or_test = sys.argv[1]
+    model = sys.argv[2]
+    if train_or_test == 'train':
+        train(model)
+    elif train_or_test == 'test':
+        load_model = sys.argv[3]
+        test(model, load_model)
+
+    print("Done!")
+
     

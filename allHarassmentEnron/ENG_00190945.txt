@@ -1,0 +1,16 @@
+meta_subject|Subject: RE:
+meta_from|From: griffith
+meta_date|Date: Tue, 23 Oct 2001 17:05:34 -0700
+meta_to|To: villarreal,
+meta_to|    Alexandra <"/o=enron/ou=na/cn=recipients/cn=avillar4">
+end-of-meta|
+end-of-meta|
+body_content|you are making me blush.
+body_content|
+boilerplate_separator| -----Original Message-----
+meta_from|From: 	Villarreal, Alexandra  
+meta_date|Sent:	Tuesday, October 23, 2001 11:58 AM
+meta_to|To:	Griffith, John
+meta_subject|Subject:	
+end-of-meta|
+body_content|you look so handsome today!    

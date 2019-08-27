@@ -1,0 +1,44 @@
+meta_subject|Subject: RE:
+meta_from|From: griffith
+meta_date|Date: Thu, 25 Oct 2001 20:32:26 -0700
+meta_to|To: villarreal,
+meta_to|    Alexandra <"/o=enron/ou=na/cn=recipients/cn=avillar4">
+end-of-meta|
+end-of-meta|
+body_greeting|Yes
+body_greeting|
+body_content|How are you doing?  Are you for sure getting your apt?  I think that neighborhood is a good one.  You will like it very much.  Lots going on.  You will feel young again.  Right in the middle of everything.  
+body_content|
+body_content|But, the dirty talk is more fun.
+body_content|
+boilerplate_separator| -----Original Message-----
+meta_from|From: 	Villarreal, Alexandra  
+meta_date|Sent:	Thursday, October 25, 2001 3:22 PM
+meta_to|To:	Griffith, John
+meta_subject|Subject:	RE: 
+end-of-meta|
+body_content|john do you have anything else to say to me other than "dirty talk"
+body_content|
+boilerplate_separator| -----Original Message-----
+meta_from|From: 	Griffith, John  
+meta_date|Sent:	Thursday, October 25, 2001 3:19 PM
+meta_to|To:	Villarreal, Alexandra
+meta_subject|Subject:	RE: 
+end-of-meta|
+body_content|Oh, I like dirty, not work talk
+body_content|
+boilerplate_separator| -----Original Message-----
+meta_from|From: 	Villarreal, Alexandra  
+meta_date|Sent:	Thursday, October 25, 2001 3:08 PM
+meta_to|To:	Griffith, John
+meta_subject|Subject:	RE: 
+end-of-meta|
+body_content|no, not dirty. i was asking you if you were busy.   thats all.
+body_content|
+boilerplate_separator| -----Original Message-----
+meta_from|From: 	Griffith, John  
+meta_date|Sent:	Thursday, October 25, 2001 2:45 PM
+meta_to|To:	Villarreal, Alexandra
+meta_subject|Subject:	
+end-of-meta|
+body_content|What were you saying to me?  Was is dirty?  I hope so.

@@ -9,8 +9,10 @@ import fasttext
 import csv
 import sys
 
-model = fasttext.load_model('model_fasttext.bin')
+loadname = sys.argv[1]
+model = fasttext.load_model(loadname)
 
+print('Testing . . .')
 csv.field_size_limit(sys.maxsize)
 email = []
 index = []
@@ -35,4 +37,4 @@ with open('../Results/fastText_result.csv','w') as f:
             count += 1
             writer.writerow({'data':email[i],'index':index[i],'prob':values[i][0]})
 
-print(count)
+print('Done!')

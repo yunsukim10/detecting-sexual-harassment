@@ -1,0 +1,15 @@
+meta_subject|Subject: RE:
+meta_from|From: Villarreal  Alexandra <alexandra.villarreal@enron.com>
+meta_date|Date: Thu, 25 Oct 2001 15:08:24 -0700
+meta_to|To: Griffith  John <john.griffith@enron.com>
+end-of-meta|
+end-of-meta|
+body_content|no, not dirty. i was asking you if you were busy.   thats all.
+body_content|
+boilerplate_separator| -----Original Message-----
+meta_from|From: 	Griffith, John  
+meta_date|Sent:	Thursday, October 25, 2001 2:45 PM
+meta_to|To:	Villarreal, Alexandra
+meta_subject|Subject:	
+end-of-meta|
+body_content|What were you saying to me?  Was is dirty?  I hope so.

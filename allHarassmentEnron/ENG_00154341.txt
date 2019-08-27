@@ -1,0 +1,7 @@
+meta_subject|Subject: 
+meta_from|From: Evans  Ted <ted.evans@enron.com>
+meta_date|Date: Wed, 21 Nov 2001 07:15:59 -0800
+meta_to|To: "Tholt  Jane M." <jane.m.tholt@enron.com>
+end-of-meta|
+end-of-meta|
+body_content|did you watch your girl on tv last night?
